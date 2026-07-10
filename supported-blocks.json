@@ -1,0 +1,15 @@
+[
+	"core/paragraph",
+	"core/heading",
+	"core/list",
+	"core/quote",
+	"core/image",
+	"core/gallery",
+	"core/video",
+	"core/cover",
+	"core/group",
+	"core/columns",
+	"core/column",
+	"core/buttons",
+	"core/button"
+]
