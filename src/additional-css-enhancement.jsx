@@ -1,9 +1,9 @@
 import { InspectorControls, store as blockEditorStore, useBlockEditingMode } from '@wordpress/block-editor';
 import * as blockEditor from '@wordpress/block-editor';
 import { addFilter } from '@wordpress/hooks';
-import { BaseControl, Button, Modal, Notice, TextareaControl } from '@wordpress/components';
+import { BaseControl, Button, Modal, TextareaControl } from '@wordpress/components';
 import * as components from '@wordpress/components';
-import { Fragment, useMemo, useState } from '@wordpress/element';
+import { Fragment, lazy, Suspense, useMemo, useState } from '@wordpress/element';
 import { __, sprintf } from '@wordpress/i18n';
 import { createHigherOrderComponent } from '@wordpress/compose';
 import { getBlockType } from '@wordpress/blocks';
@@ -12,7 +12,6 @@ import {
 	SELECTOR_TOKEN,
 	compileCustomCSS,
 	getCompiledCache,
-	validateMarkup,
 } from './custom-css-parser';
 import supportedBlocks from '../supported-blocks.json';
 
@@ -22,6 +21,7 @@ const VStack =
 	components.__experimentalVStack ||
 	( ( { children } ) => <div>{ children }</div> );
 const useBlockStyleOverride = blockEditor.useStyleOverride || function () {};
+const AdditionalCSSCodeEditor = lazy( () => import( './additional-css-code-editor' ) );
 const expandIcon = (
 	<svg width="24" height="24" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
 		<path d="M6 9V6h3V4.5H4.5V9H6Zm9-3h3v3h1.5V4.5H15V6Zm3 9v3h-3v1.5h4.5V15H18ZM9 18H6v-3H4.5v4.5H9V18Z" />
@@ -113,9 +113,6 @@ function AdditionalCSSEnhancementControl( props ) {
 	);
 	const blockEditingMode = useBlockEditingMode ? useBlockEditingMode() : 'default';
 	const value = getCustomCSS( attributes );
-	const markupError = value && ! validateMarkup( value );
-	const compiled = useMemo( () => compileCustomCSS( value ), [ value ] );
-	const compileError = value && ! markupError && compiled.errors.length > 0;
 	const fieldHelp = sprintf(
 		__(
 			'Add scoped CSS for the %s block. Use declarations, & selectors, and @media, @supports, or @container blocks.',
@@ -126,21 +123,6 @@ function AdditionalCSSEnhancementControl( props ) {
 	const handleChange = ( nextValue ) => {
 		setCustomCSS( props, nextValue );
 	};
-	const notices = (
-		<Fragment>
-			{ markupError && (
-				<Notice status="error" isDismissible={ false }>
-					{ __( 'The custom CSS is invalid. Do not use <> markup.', 'acsse' ) }
-				</Notice>
-			) }
-			{ compileError && (
-				<Notice status="warning" isDismissible={ false }>
-					{ compiled.errors.join( ' ' ) }
-				</Notice>
-			) }
-		</Fragment>
-	);
-
 	if ( ! canEditCSS || blockEditingMode !== 'default' ) {
 		return null;
 	}
@@ -149,7 +131,6 @@ function AdditionalCSSEnhancementControl( props ) {
 		<Fragment>
 			<InspectorControls group="advanced">
 				<VStack spacing={ 3 }>
-					{ notices }
 					<div
 						style={ {
 							display: 'flex',
@@ -187,15 +168,19 @@ function AdditionalCSSEnhancementControl( props ) {
 					size="large"
 				>
 					<VStack spacing={ 3 }>
-						{ notices }
-						<TextareaControl
-							label={ __( 'Additional CSS', 'acsse' ) }
-							value={ value }
-							onChange={ handleChange }
-							rows={ 20 }
-							spellCheck={ false }
-							help={ fieldHelp }
-						/>
+						<Suspense
+							fallback={
+								<div style={ { minHeight: '320px' } }>
+									{ __( 'Loading CSS editor…', 'acsse' ) }
+								</div>
+							}
+						>
+							<AdditionalCSSCodeEditor
+								help={ fieldHelp }
+								value={ value }
+								onChange={ handleChange }
+							/>
+						</Suspense>
 					</VStack>
 				</Modal>
 			) }

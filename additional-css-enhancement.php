@@ -55,6 +55,7 @@ function acsse_editor_asset_metadata() {
 
 	return array(
 		'dependencies' => array(
+			'react',
 			'react-jsx-runtime',
 			'wp-block-editor',
 			'wp-blocks',

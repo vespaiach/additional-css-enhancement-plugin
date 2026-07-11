@@ -6,6 +6,10 @@ That makes responsive block design harder than it needs to be. Additional CSS En
 
 The plugin replaces the default core custom CSS support for supported blocks with an enhanced editor control. CSS entered in the block sidebar is compiled in the editor, previewed against the current block, stored with a versioned cache, and rendered on the frontend only when the compiled CSS still matches the saved source.
 
+## Demo
+
+![Additional CSS Enhancement plugin demo](demo.gif)
+
 ## Supported Blocks
 
 The supported block list is defined in `supported-blocks.json`.
